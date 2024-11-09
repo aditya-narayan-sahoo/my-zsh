@@ -114,7 +114,3 @@ source ~/.zshrc
 - [Zsh Syntax Highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)
 - [FZF](https://github.com/junegunn/fzf)
 - [Git Prompt for Zsh](https://aur.archlinux.org/packages/git-prompt.zsh)
-
-```
-
-```
