@@ -1,94 +1,120 @@
-# Zsh without bloated plugin or theme manager
+# Zsh Configuration without Bloat
 
-This is a configuration file for zsh on arch linux.
+This is a minimal Zsh configuration for Arch Linux, optimized for speed and usability, without any bloated plugin or theme managers. It integrates useful features for a smooth terminal experience, all in a single config file.
 
 ## Features
 
-- Use your OS package manager and source/configure all plugins in a single file
-- Case-insensitive, misspell-forgiving completions
-- Emacs keybindings paired with common text editor keybindings (See [Keybindings](#keybindings))
-- Convenient aliases (See [Aliases](#aliases))
-- Long history with immediate history updates and duplicate omission (duplicates move to end of history)
-- Commands beginning with space won't be saved in history
-- Clean prompt with git status, exit code of last command if code != 0, and optionally displaying hostname
-- [Autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) based on history
-- Search through history for previous commands matching everything up to current cursor position with arrow keys
-- [Syntax highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)
-- Autocomplete and history search with [fzf](https://github.com/junegunn/fzf) fuzzy search
+- **No bloat**: Manage all plugins via your OS package manager, sourcing and configuring everything in a single file.
+- **Smart completions**: Case-insensitive, misspelled command completions.
+- **Keybindings**: Emacs-style keybindings with additional text editor-style controls. (See [Keybindings](#keybindings)).
+- **Convenient Aliases**: Predefined, useful aliases to speed up your workflow. (See [Aliases](#aliases)).
+- **History management**: Long history with immediate updates and duplicate removal (duplicates move to the end).
+- **History exclusion**: Commands starting with a space won't be saved to history.
+- **Clean prompt**: Displays Git status, exit code (if non-zero), and optionally, your hostname.
+- **[Autosuggestions](https://github.com/zsh-users/zsh-autosuggestions)**: Suggest commands based on your history.
+- **History search**: Search through your history with arrow keys for previously executed commands.
+- **[Syntax Highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)**: Visual cues for valid syntax.
+- **Fuzzy Search**: Use [fzf](https://github.com/junegunn/fzf) for advanced fuzzy searching in history, files, directories, and commands.
+
+---
 
 ## Keybindings
 
-The default config enables Emacs keybindings but you can disable them or change them to vi by swapping out the `-e` flag with `-v` in [line 17](https://github.com/bttger/my-zsh/blob/main/.zshrc#L17). The following keybindings add features known from common text editors:
+By default, Emacs keybindings are enabled, but you can easily switch to **Vi keybindings** by modifying the `-e` flag to `-v` on [line 17](https://github.com/bttger/my-zsh/blob/main/.zshrc#L17). These keybindings include features from common text editors:
 
-- <kbd>Home</kbd> to move cursor to the beginning of the line
-- <kbd>End</kbd> to move cursor to the end of the line
-- <kbd>Del</kbd> to delete the following char
-- <kbd>Ctrl</kbd> + <kbd>Del</kbd> to delete the following word
-- <kbd>Ctrl</kbd> + <kbd>⌫</kbd> to delete the previous word
-- <kbd>Ctrl</kbd> + <kbd>→</kbd> to move cursor forward one word
-- <kbd>Ctrl</kbd> + <kbd>←</kbd> to move cursor backward one word
-- <kbd>Ctrl</kbd> + <kbd>Z</kbd> to undo last action
-- <kbd>Ctrl</kbd> + <kbd>Y</kbd> to redo undone actions
+### General Editing
 
-Autosuggestions:
+- **Home**: Move cursor to the beginning of the line.
+- **End**: Move cursor to the end of the line.
+- **Del**: Delete the character under the cursor.
+- **Ctrl + Del**: Delete the following word.
+- **Ctrl + ⌫**: Delete the previous word.
+- **Ctrl + →**: Move cursor forward by one word.
+- **Ctrl + ←**: Move cursor backward by one word.
+- **Ctrl + Z**: Undo the last action.
+- **Ctrl + Y**: Redo the last undone action.
 
-- <kbd>Ctrl</kbd> + <kbd>→</kbd> to partially accept suggestion up to the point that the cursor moves to
-- <kbd>End</kbd> or <kbd>→</kbd> to accept suggestion and replace contents of the command line buffer with the suggestion
+### Autosuggestions
 
-Fuzzy search:
+- **Ctrl + →**: Accept part of the autosuggestion up to the cursor position.
+- **End** or **→**: Accept the entire autosuggestion and replace the command buffer with it.
 
-- <kbd>Ctrl</kbd> + <kbd>T</kbd> to fuzzy search files/directories and paste the selected files/directories onto the command line
-- <kbd>Ctrl</kbd> + <kbd>R</kbd> to fuzzy search the history and paste the selected command onto the command line
-- <kbd>Alt</kbd> + <kbd>C</kbd> to fuzzy search directories and `cd` into the selected directory
-- Type `**` and hit <kbd>Tab</kbd> to fuzzy search files/directories/process IDs/hostnames/environment variables, and autocomplete command
+### Fuzzy Search
 
-History search:
+- **Ctrl + T**: Fuzzy search files/directories and paste the selection into the command line.
+- **Ctrl + R**: Fuzzy search through command history and paste the selected command.
+- **Alt + C**: Fuzzy search directories and `cd` into the selected one.
+- **Type `**` and press Tab\*\*: Search files, directories, process IDs, hostnames, or environment variables for auto-completion.
 
-- Type beginning of some command and use <kbd>↑</kbd> and <kbd>↓</kbd> to search through the history for previous commands matching everything up to current cursor position
+### History Search
+
+- Type the beginning of a previous command and use **↑** or **↓** to search through your history for matching commands.
+
+---
 
 ## Aliases
 
-| alias     | command                                  |
-| --------- | ---------------------------------------- |
-| `md`      | `mkdir -p`                               |
-| `rd`      | `rmdir`                                  |
-| `t`       | `tere --filter-search`                   |
-| `hib`     | `systemctl hibernate`                    |
-| `ls`      | prettified `lsd`                         |
-| `glog`    | prettified `git log`                     |
-| `adog`    | prettified `git log`                     |
-| `ddc`     | change backlight brightness              |
-| `histctx` | find stuff in shell history with context |
-| `~`       | `cd "$HOME"`\*                           |
-| `-`       | `cd "$OLDPWD"`\*                         |
-| `..`      | `cd ..`\*                                |
-| `....`    | `cd ../..`\*                             |
-| `......`  | `cd ../../..`\*                          |
+Here's a list of useful aliases included in the configuration:
 
-\*Set by the `autocd` option.
+| Alias     | Command                                |
+| --------- | -------------------------------------- |
+| `md`      | `mkdir -p`                             |
+| `rd`      | `rm -rf`                               |
+| `glog`    | Pretty print `git log`                 |
+| `adog`    | Another alias for prettified `git log` |
+| `histctx` | Search history with context            |
+| `~`       | `cd "$HOME"`\*                         |
+| `-`       | `cd "$OLDPWD"`\*                       |
+| `..`      | `cd ..`\*                              |
+| `....`    | `cd ../..`\*                           |
+| `......`  | `cd ../../..`\*                        |
 
+\* These are enabled by the `autocd` option.
 
-## Install
+---
+
+## Installation
 
 ### On Arch Linux
 
-```sh
-# Install zsh and some plugins
+1. **Install Zsh and Plugins**
+
+```bash
+# Install essential packages
 pacman -S zsh zsh-completions zsh-autosuggestions fzf zsh-syntax-highlighting xclip
 
-# Install the following plugin from AUR using helper like yay or build yourself
-git-prompt.zsh
+# Install the Git prompt plugin from AUR
+yay -S git-prompt.zsh
 
-# Steps to build
+# Or manually build it from AUR
 git clone https://aur.archlinux.org/git-prompt.zsh.git
 cd git-prompt.zsh
 makepkg -sri
+```
 
-# Make Zsh your default shell
+2. **Set Zsh as Default Shell**
+
+```bash
 chsh -s $(which zsh)
+```
 
-# Create or update your ~/.zshrc according to the config in this repository
-# The .zshrc file usually resides in your home directory
-# After making changes to your config, update your running Zsh instance
+3. **Configure Zsh**
+
+Create or update your `~/.zshrc` file according to the configuration in this repository. After updating, reload your Zsh configuration:
+
+```bash
 source ~/.zshrc
+```
+
+---
+
+## Credits & Links
+
+- [Zsh Autosuggestions](https://github.com/zsh-users/zsh-autosuggestions)
+- [Zsh Syntax Highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)
+- [FZF](https://github.com/junegunn/fzf)
+- [Git Prompt for Zsh](https://aur.archlinux.org/packages/git-prompt.zsh)
+
+```
+
 ```
