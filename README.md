@@ -20,7 +20,7 @@ This is a minimal Zsh configuration for Arch Linux, optimized for speed and usab
 
 ## Keybindings
 
-By default, Emacs keybindings are enabled, but you can easily switch to **Vi keybindings** by modifying the `-e` flag to `-v` on [line 17](https://github.com/bttger/my-zsh/blob/main/.zshrc#L17). These keybindings include features from common text editors:
+By default, Emacs keybindings are enabled, but you can easily switch to **Vi keybindings** by modifying the `-e` flag to `-v` on [line 20](https://github.com/aditya-narayan-sahoo/my-zsh/blob/main/.zshrc#L20). These keybindings include features from common text editors:
 
 ### General Editing
 
@@ -63,15 +63,14 @@ Here's a list of useful aliases included in the configuration:
 | `glog`    | Pretty print `git log`                 |
 | `adog`    | Another alias for prettified `git log` |
 | `histctx` | Search history with context            |
+| `big`     | Sort installed packages a/c size (MB)  |
 | `~`       | `cd "$HOME"`\*                         |
 | `-`       | `cd "$OLDPWD"`\*                       |
 | `..`      | `cd ..`\*                              |
 | `....`    | `cd ../..`\*                           |
 | `......`  | `cd ../../..`\*                        |
 
-\* These are enabled by the `autocd` option.
-
----
+Also has aliases for updating the pacman mirrorlist
 
 ## Installation
 
@@ -79,32 +78,37 @@ Here's a list of useful aliases included in the configuration:
 
 1. **Install Zsh and Plugins**
 
-```bash
-# Install essential packages
-pacman -S zsh zsh-completions zsh-autosuggestions fzf zsh-syntax-highlighting xclip
+   ```
+   sudo pacman -S zsh zsh-completions zsh-autosuggestions fzf zsh-syntax-highlighting xclip expac reflector
+   ```
 
-# Install the Git prompt plugin from AUR
-yay -S git-prompt.zsh
+2. **Install the Git prompt plugin from AUR Using aur helpers**
 
-# Or manually build it from AUR
-git clone https://aur.archlinux.org/git-prompt.zsh.git
-cd git-prompt.zsh
-makepkg -sri
-```
+   ```
+   yay -S git-prompt.zsh
+   ```
 
-2. **Set Zsh as Default Shell**
+3. **Or manually build it from AUR**
 
-```bash
-chsh -s $(which zsh)
-```
+   ```
+   git clone https://aur.archlinux.org/git-prompt.zsh.git
+   cd git-prompt.zsh
+   makepkg -sri
+   ```
 
-3. **Configure Zsh**
+4. **Set Zsh as Default Shell**
 
-Create or update your `~/.zshrc` file according to the configuration in this repository. After updating, reload your Zsh configuration:
+   ```bash
+   chsh -s $(which zsh)
+   ```
 
-```bash
-source ~/.zshrc
-```
+5. **Configure Zsh**
+
+   Create or update your `~/.zshrc` file according to the configuration in this repository. After updating, reload your Zsh configuration:
+
+   ```bash
+   source ~/.zshrc
+   ```
 
 ---
 
