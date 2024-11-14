@@ -1,0 +1,89 @@
+zstyle ':completion:*' completer _expand _complete _ignored _correct _approximate
+zstyle ':completion:*' list-colors ''
+zstyle ':completion:*' list-prompt %SAt %p: Hit TAB for more, or the character to insert%s
+zstyle ':completion:*' matcher-list '' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' 'r:|[._-.]=** r:|=**'
+zstyle ':completion:*' max-errors 2 numeric
+zstyle ':completion:*' menu select=5
+zstyle ':completion:*' select-prompt %SScrolling active: current selection at %p%s
+zstyle :compinstall filename '/home/ans/.zshrc'
+
+autoload -Uz compinit
+compinit
+HISTFILE=~/.histfile
+HISTSIZE=100000
+SAVEHIST=10000
+setopt autocd
+bindkey -e
+
+bindkey "^[[H" beginning-of-line # HOME
+bindkey "^[[F" end-of-line # END
+bindkey "^[[3~" delete-char # DEL
+bindkey "^[[3;5~" delete-word # CTRL+DEL - delete a whole word after cursor
+bindkey "^H" backward-delete-word # CTRL+BACKSPACE - delete a whole word before cursor
+bindkey "^[[1;5C" forward-word # CTRL+ARROW_RIGHT - move cursor forward one word
+bindkey "^[[1;5D" backward-word # CTRL+ARROW_LEFT - move cursor backward one word
+bindkey "^Z" undo # CTRL+Z
+bindkey "^Y" redo # CTRL+Y
+
+# Function to append text from clipboard using xclip
+paste_from_clipboard() {
+    local clipboard_text=$(xclip -o -selection clipboard)
+    BUFFER+="$clipboard_text"
+    CURSOR=${#BUFFER}
+    zle reset-prompt
+}
+
+# Register the paste function with ZLE and bind it to Ctrl + V
+zle -N paste_from_clipboard
+bindkey "^V" paste_from_clipboard # CTRL+V - paste from clipboard
+
+# Aliases
+alias install="sudo pacman -S"
+alias upgrade='sudo pacman -Syu'
+alias md="mkdir -p"
+alias rd="rm -rf"
+alias glog="git log --all --decorate --graph --abbrev-commit --format='%C(bold yellow)%h%d%C(reset) - %C(white)%s%C(reset)%n          %C(bold blue)%ar (%ai)%C(reset) %C(bold dim green)%an%C(reset)'"
+alias adog="git log --all --decorate --oneline --graph"
+alias histctx="grep -n '' ~/.histfile | fzf --delimiter : --preview 'bat --style=numbers --color=always --highlight-line {1} ~/.histfile' --preview-window +{1}-/2"
+
+# Get fastest mirrors
+alias mirror="sudo reflector -f 30 -l 30 --number 10 --verbose --save /etc/pacman.d/mirrorlist"
+alias mirrora="sudo reflector --latest 50 --number 20 --sort age --save /etc/pacman.d/mirrorlist"
+alias mirrord="sudo reflector --latest 50 --number 20 --sort delay --save /etc/pacman.d/mirrorlist"
+alias mirrors="sudo reflector --latest 50 --number 20 --sort score --save /etc/pacman.d/mirrorlist"
+alias big='expac -H M "%m\t%n" | sort -h | nl'     # Sort installed packages according to size in MB (expac must be installed)
+
+export WORDCHARS="*?_-.[]~=&;!#$%^(){}<>"
+export VISUAL=nano
+export EDITOR="$VISUAL"
+export FZF_DEFAULT_COMMAND='find . \! \( -type d -path ./.git -prune \) \! -type d \! -name '\''*.tags'\'' -printf '\''%P\n'\'
+
+setopt HIST_EXPIRE_DUPS_FIRST
+setopt HIST_FIND_NO_DUPS
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_SPACE
+setopt HIST_SAVE_NO_DUPS
+setopt INC_APPEND_HISTORY
+
+source /usr/share/zsh/scripts/git-prompt.zsh
+ZSH_THEME_GIT_PROMPT_PREFIX=" %{$fg_bold[green]%}("
+ZSH_THEME_GIT_PROMPT_SUFFIX="%{$fg_bold[green]%} )"
+ZSH_THEME_GIT_PROMPT_BRANCH="%{$fg_bold[green]%}"
+ZSH_THEME_GIT_PROMPT_TAG="%{$fg_bold[green]%}"
+
+PROMPT='%B%F{magenta}%n@%m:%f%F{blue}%(4~|../|)%3~%f%b$(gitprompt)%B%F{magenta}%f%b ' # with hostname
+RPROMPT='%B%F{red}%(0?||Exit code: %?)%f%b'
+
+source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+source /usr/share/fzf/key-bindings.zsh
+source /usr/share/fzf/completion.zsh
+
+autoload -U up-line-or-beginning-search
+autoload -U down-line-or-beginning-search
+zle -N up-line-or-beginning-search
+zle -N down-line-or-beginning-search
+bindkey "^[[A" up-line-or-beginning-search # ARROW_UP
+bindkey "^[[B" down-line-or-beginning-search # ARROW_DOWN
+
+source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
