@@ -25,18 +25,6 @@ bindkey "^[[1;5D" backward-word # CTRL+ARROW_LEFT - move cursor backward one wor
 bindkey "^Z" undo # CTRL+Z
 bindkey "^Y" redo # CTRL+Y
 
-# Function to append text from clipboard using xclip
-paste_from_clipboard() {
-    local clipboard_text=$(xclip -o -selection clipboard)
-    BUFFER+="$clipboard_text"
-    CURSOR=${#BUFFER}
-    zle reset-prompt
-}
-
-# Register the paste function with ZLE and bind it to Ctrl + V
-zle -N paste_from_clipboard
-bindkey "^V" paste_from_clipboard # CTRL+V - paste from clipboard
-
 # Aliases
 alias install="sudo pacman -S"
 alias upgrade='sudo pacman -Syu'
@@ -44,13 +32,11 @@ alias md="mkdir -p"
 alias rd="rm -rf"
 alias glog="git log --all --decorate --graph --abbrev-commit --format='%C(bold yellow)%h%d%C(reset) - %C(white)%s%C(reset)%n          %C(bold blue)%ar (%ai)%C(reset) %C(bold dim green)%an%C(reset)'"
 alias adog="git log --all --decorate --oneline --graph"
-alias histctx="grep -n '' ~/.histfile | fzf --delimiter : --preview 'bat --style=numbers --color=always --highlight-line {1} ~/.histfile' --preview-window +{1}-/2"
 alias big='expac -H M "%m\t%n" | sort -h | nl'     # Sort installed packages according to size in MB (expac must be installed)
 
 export WORDCHARS="*?_-.[]~=&;!#$%^(){}<>"
 export VISUAL=nano
 export EDITOR="$VISUAL"
-export FZF_DEFAULT_COMMAND='find . \! \( -type d -path ./.git -prune \) \! -type d \! -name '\''*.tags'\'' -printf '\''%P\n'\'
 
 setopt HIST_EXPIRE_DUPS_FIRST
 setopt HIST_FIND_NO_DUPS
@@ -70,8 +56,6 @@ PROMPT='%B%F{magenta}%n@%m:%f%F{blue}%(4~|../|)%3~%f%b$(gitprompt)%B%F{magenta}%
 RPROMPT='%B%F{red}%(0?||Exit code: %?)%f%b'
 
 source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
-source /usr/share/fzf/key-bindings.zsh
-source /usr/share/fzf/completion.zsh
 
 autoload -U up-line-or-beginning-search
 autoload -U down-line-or-beginning-search

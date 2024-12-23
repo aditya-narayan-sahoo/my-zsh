@@ -39,13 +39,6 @@ By default, Emacs keybindings are enabled, but you can easily switch to **Vi key
 - **Ctrl + →**: Accept part of the autosuggestion up to the cursor position.
 - **End** or **→**: Accept the entire autosuggestion and replace the command buffer with it.
 
-### Fuzzy Search
-
-- **Ctrl + T**: Fuzzy search files/directories and paste the selection into the command line.
-- **Ctrl + R**: Fuzzy search through command history and paste the selected command.
-- **Alt + C**: Fuzzy search directories and `cd` into the selected one.
-- **Type `**` and press Tab\*\*: Search files, directories, process IDs, hostnames, or environment variables for auto-completion.
-
 ### History Search
 
 - Type the beginning of a previous command and use **↑** or **↓** to search through your history for matching commands.
@@ -56,19 +49,18 @@ By default, Emacs keybindings are enabled, but you can easily switch to **Vi key
 
 Here's a list of useful aliases included in the configuration:
 
-| Alias     | Command                                |
-| --------- | -------------------------------------- |
-| `md`      | `mkdir -p`                             |
-| `rd`      | `rm -rf`                               |
-| `glog`    | Pretty print `git log`                 |
-| `adog`    | Another alias for prettified `git log` |
-| `histctx` | Search history with context            |
-| `big`     | Sort installed packages a/c size (MB)  |
-| `~`       | `cd "$HOME"`\*                         |
-| `-`       | `cd "$OLDPWD"`\*                       |
-| `..`      | `cd ..`\*                              |
-| `....`    | `cd ../..`\*                           |
-| `......`  | `cd ../../..`\*                        |
+| Alias    | Command                                |
+| -------- | -------------------------------------- |
+| `md`     | `mkdir -p`                             |
+| `rd`     | `rm -rf`                               |
+| `glog`   | Pretty print `git log`                 |
+| `adog`   | Another alias for prettified `git log` |
+| `big`    | Sort installed packages a/c size (MB)  |
+| `~`      | `cd "$HOME"`\*                         |
+| `-`      | `cd "$OLDPWD"`\*                       |
+| `..`     | `cd ..`\*                              |
+| `....`   | `cd ../..`\*                           |
+| `......` | `cd ../../..`\*                        |
 
 Also has aliases for updating the pacman mirrorlist
 
@@ -79,7 +71,7 @@ Also has aliases for updating the pacman mirrorlist
 1. **Install Zsh and Plugins**
 
    ```
-   sudo pacman -S zsh zsh-completions zsh-autosuggestions fzf zsh-syntax-highlighting xclip expac
+   sudo pacman -S zsh zsh-completions zsh-autosuggestions zsh-syntax-highlighting expac
    ```
 
 2. **Install the Git prompt plugin from AUR Using aur helpers**
@@ -91,9 +83,7 @@ Also has aliases for updating the pacman mirrorlist
 3. **Or manually build it from AUR**
 
    ```
-   git clone https://aur.archlinux.org/git-prompt.zsh.git
-   cd git-prompt.zsh
-   makepkg -sri
+   git clone https://aur.archlinux.org/git-prompt.zsh.git && cd git-prompt.zsh && makepkg -sri
    ```
 
 4. **Set Zsh as Default Shell**
@@ -116,5 +106,4 @@ Also has aliases for updating the pacman mirrorlist
 
 - [Zsh Autosuggestions](https://github.com/zsh-users/zsh-autosuggestions)
 - [Zsh Syntax Highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)
-- [FZF](https://github.com/junegunn/fzf)
 - [Git Prompt for Zsh](https://aur.archlinux.org/packages/git-prompt.zsh)
