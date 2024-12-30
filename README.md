@@ -71,7 +71,7 @@ Also has aliases for updating the pacman mirrorlist
 1. **Install Zsh and Plugins**
 
    ```
-   sudo pacman -S zsh zsh-completions zsh-autosuggestions zsh-syntax-highlighting expac
+   sudo pacman -S zsh zsh-completions zsh-autosuggestions zsh-syntax-highlighting expac micro
    ```
 
 2. **Install the Git prompt plugin from AUR Using aur helpers**

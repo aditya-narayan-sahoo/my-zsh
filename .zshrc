@@ -71,7 +71,7 @@ alias mirrors="sudo reflector --latest 50 --number 20 --sort score --save /etc/p
 # Default WORDCHARS are *?_-.[]~=/&;!#$%^(){}<>
 export WORDCHARS="*?_-.[]~=&;!#$%^(){}<>"
 # Set the default editor for sudoedit or sudo -e
-export VISUAL=nano
+export VISUAL=micro
 export EDITOR="$VISUAL"
 # fzf default find command (can also use ag (silver surfer), rg (ripgrep), etc.)
 export FZF_DEFAULT_COMMAND='find . \! \( -type d -path ./.git -prune \) \! -type d \! -name '\''*.tags'\'' -printf '\''%P\n'\'

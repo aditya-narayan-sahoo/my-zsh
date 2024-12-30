@@ -27,6 +27,7 @@ bindkey "^Y" redo # CTRL+Y
 
 # Aliases
 alias install="sudo pacman -S"
+alias uninstall="sudo pacman -Rcns"
 alias upgrade='sudo pacman -Syu'
 alias md="mkdir -p"
 alias rd="rm -rf"
@@ -35,7 +36,7 @@ alias adog="git log --all --decorate --oneline --graph"
 alias big='expac -H M "%m\t%n" | sort -h | nl'     # Sort installed packages according to size in MB (expac must be installed)
 
 export WORDCHARS="*?_-.[]~=&;!#$%^(){}<>"
-export VISUAL=nano
+export VISUAL=micro
 export EDITOR="$VISUAL"
 
 setopt HIST_EXPIRE_DUPS_FIRST
