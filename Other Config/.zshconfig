@@ -35,6 +35,12 @@ alias glog="git log --all --decorate --graph --abbrev-commit --format='%C(bold y
 alias adog="git log --all --decorate --oneline --graph"
 alias big='expac -H M "%m\t%n" | sort -h | nl'     # Sort installed packages according to size in MB (expac must be installed)
 
+#Get Fastest mirrors using reflector
+alias sortrate='sudo reflector --country India --protocol https --sort rate --save /etc/pacman.d/mirrorlist' # fastest download speed
+alias sortscore='sudo reflector --country India --protocol https --sort score --save /etc/pacman.d/mirrorlist' # combine several factors
+alias sortage='sudo reflector --country India --protocol https --sort age --save /etc/pacman.d/mirrorlist' # most synchronized
+alias sortdistance='sudo reflector --country India --protocol https --sort distance --save /etc/pacman.d/mirrorlist' # low latency
+
 export WORDCHARS="*?_-.[]~=&;!#$%^(){}<>"
 export VISUAL=micro
 export EDITOR="$VISUAL"

@@ -59,11 +59,11 @@ alias adog="git log --all --decorate --oneline --graph"
 alias histctx="grep -n '' ~/.histfile | fzf --delimiter : --preview 'bat --style=numbers --color=always --highlight-line {1} ~/.histfile' --preview-window +{1}-/2"
 alias big='expac -H M "%m\t%n" | sort -h | nl'     # Sort installed packages according to size in MB (expac must be installed)
 
-# Get fastest mirrors
-alias mirror="sudo reflector -f 30 -l 30 --number 10 --verbose --save /etc/pacman.d/mirrorlist"
-alias mirrora="sudo reflector --latest 50 --number 20 --sort age --save /etc/pacman.d/mirrorlist"
-alias mirrord="sudo reflector --latest 50 --number 20 --sort delay --save /etc/pacman.d/mirrorlist"
-alias mirrors="sudo reflector --latest 50 --number 20 --sort score --save /etc/pacman.d/mirrorlist"
+#Get Fastest mirrors using reflector
+alias sortrate='sudo reflector --country India --protocol https --sort rate --save /etc/pacman.d/mirrorlist' # fastest download speed
+alias sortscore='sudo reflector --country India --protocol https --sort score --save /etc/pacman.d/mirrorlist' # combine several factors
+alias sortage='sudo reflector --country India --protocol https --sort age --save /etc/pacman.d/mirrorlist' # most synchronized
+alias sortdistance='sudo reflector --country India --protocol https --sort distance --save /etc/pacman.d/mirrorlist' # low latency
 
 # Env Exports
 # https://zsh.sourceforge.io/Doc/Release/User-Contributions.html#index-match_002dwords_002dby_002dstyle
