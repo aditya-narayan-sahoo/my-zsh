@@ -39,7 +39,7 @@ alias big='expac -H M "%m\t%n" | sort -h | nl'     # Sort installed packages acc
 alias sortrate='sudo reflector --country India --protocol https --sort rate --save /etc/pacman.d/mirrorlist' # fastest download speed
 alias sortscore='sudo reflector --country India --protocol https --sort score --save /etc/pacman.d/mirrorlist' # combine several factors
 alias sortage='sudo reflector --country India --protocol https --sort age --save /etc/pacman.d/mirrorlist' # most synchronized
-alias sortdistance='sudo reflector --country India --protocol https --sort distance --save /etc/pacman.d/mirrorlist' # low latency
+alias sortdelay='sudo reflector --country India --protocol https --sort delay --save /etc/pacman.d/mirrorlist' # low latency
 
 export WORDCHARS="*?_-.[]~=&;!#$%^(){}<>"
 export VISUAL=micro
