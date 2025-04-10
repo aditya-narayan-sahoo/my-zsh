@@ -57,7 +57,9 @@ alias glog="git log --all --decorate --graph --abbrev-commit --format='%C(bold y
 alias adog="git log --all --decorate --oneline --graph"
 
 # Utility Aliases
+alias t="tere --filter-search"
 alias big='expac -H M "%m\t%n" | sort -h | nl' # Sort installed packages according to size in MB (expac must be installed)
+alias histctx="grep -n '' ~/.histfile | fzf --delimiter : --preview 'bat --style=numbers --color=always --highlight-line {1} ~/.histfile' --preview-window +{1}-/2"
 
 # Reflector Aliases
 alias sortrate='sudo reflector --country India --protocol https --sort rate --save /etc/pacman.d/mirrorlist' # fastest download speed
@@ -69,6 +71,12 @@ alias sortdelay='sudo reflector --country India --protocol https --sort delay --
 export WORDCHARS="*?_-.[]~=&;!#$%^(){}<>"
 export VISUAL=micro
 export EDITOR="$VISUAL"
+export FZF_DEFAULT_COMMAND='find . \! \( -type d -path ./.git -prune \) \! -type d \! -name '\''*.tags'\'' -printf '\''%P\n'\'
+
+tere() {
+    local result=$(command tere "$@")
+    [ -n "$result" ] && cd -- "$result"
+}
 
 # --- Prompt Customization ---
 source /usr/share/zsh/scripts/git-prompt.zsh
@@ -83,6 +91,9 @@ RPROMPT='%B%F{red}%(0?||Exit code: %?)%f%b'
 # --- Plugins ---
 source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source /usr/share/fzf/key-bindings.zsh
+# Type ** and hit tab (eg. with the cd command; works with directories, files, process IDs, hostnames, environment variables)
+source /usr/share/fzf/completion.zsh
 
 # --- ZLE bindkeys for search in history ---
 autoload -U up-line-or-beginning-search
