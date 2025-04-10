@@ -15,6 +15,7 @@ This is a minimal Zsh configuration for Arch Linux, optimized for speed and usab
 - **History search**: Search through your history with arrow keys for previously executed commands.
 - **[Syntax Highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)**: Visual cues for valid syntax.
 - **Fuzzy Search**: Use [fzf](https://github.com/junegunn/fzf) for advanced fuzzy searching in history, files, directories, and commands.
+- [tere](https://github.com/mgunyho/tere) integration for easy and fast directory navigation
 
 ---
 
@@ -22,7 +23,7 @@ This is a minimal Zsh configuration for Arch Linux, optimized for speed and usab
 
 By default, Emacs keybindings are enabled, but you can easily switch to **Vi keybindings** by modifying the `-e` flag to `-v` on [line 20](https://github.com/aditya-narayan-sahoo/my-zsh/blob/main/.zshrc#L20). These keybindings include features from common text editors:
 
-### General Editing
+### General Editing:
 
 - **Home**: Move cursor to the beginning of the line.
 - **End**: Move cursor to the end of the line.
@@ -34,14 +35,21 @@ By default, Emacs keybindings are enabled, but you can easily switch to **Vi key
 - **Ctrl + Z**: Undo the last action.
 - **Ctrl + Y**: Redo the last undone action.
 
-### Autosuggestions
+### Autosuggestions:
 
 - **Ctrl + →**: Accept part of the autosuggestion up to the cursor position.
 - **End** or **→**: Accept the entire autosuggestion and replace the command buffer with it.
 
-### History Search
+### History Search:
 
 - Type the beginning of a previous command and use **↑** or **↓** to search through your history for matching commands.
+
+### Fuzzy search:
+
+- Ctrl + T to fuzzy search files/directories and paste the selected files/directories onto the command line
+- Ctrl + R to fuzzy search the history and paste the selected command onto the command line
+- Alt + C to fuzzy search directories and cd into the selected directory
+- Type \*\* and hit Tab to fuzzy search files/directories/process IDs/hostnames/environment variables, and autocomplete command
 
 ---
 
@@ -71,7 +79,7 @@ Also has aliases for updating the pacman mirrorlist
 1. **Install Zsh and Plugins**
 
    ```
-   sudo pacman -S zsh zsh-completions zsh-autosuggestions zsh-syntax-highlighting expac micro reflector
+   sudo pacman -S zsh zsh-completions zsh-autosuggestions zsh-syntax-highlighting expac micro reflector tere fzf
    ```
 
 2. **Install the Git prompt plugin from AUR Using aur helpers**
@@ -104,6 +112,7 @@ Also has aliases for updating the pacman mirrorlist
 
 ## Credits & Links
 
+- [Git Prompt for Zsh](https://aur.archlinux.org/packages/git-prompt.zsh)
 - [Zsh Autosuggestions](https://github.com/zsh-users/zsh-autosuggestions)
 - [Zsh Syntax Highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)
-- [Git Prompt for Zsh](https://aur.archlinux.org/packages/git-prompt.zsh)
+- [Original Repository for Config](https://github.com/bttger/my-zsh)
