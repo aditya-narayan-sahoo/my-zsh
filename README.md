@@ -1,4 +1,8 @@
+<heading align="center">
+
 # Zsh Configuration without Bloat
+
+</heading>
 
 This is a minimal Zsh configuration for Arch Linux, optimized for speed and usability, without any bloated plugin or theme managers. It integrates useful features for a smooth terminal experience, all in a single config file.
 
@@ -82,16 +86,16 @@ Also has aliases for updating the pacman mirrorlist
    sudo pacman -S zsh zsh-completions zsh-autosuggestions zsh-syntax-highlighting expac micro reflector tere fzf
    ```
 
-2. **Install the Git prompt plugin from AUR Using aur helpers**
+2. **Install the Git prompt plugin from AUR**
 
    ```
    yay -S git-prompt.zsh
    ```
 
-3. **Or manually build it from AUR**
+3. **Install rate-mirrors from AUR**
 
    ```
-   git clone https://aur.archlinux.org/git-prompt.zsh.git && cd git-prompt.zsh && makepkg -sri
+   yay -S rate-mirrors-bin
    ```
 
 4. **Set Zsh as Default Shell**
