@@ -93,6 +93,28 @@ update-all() {
   fi
 }
 
+# Clean caches
+cclean () {
+  echo "Cleaning pacman cache (keeping one version)..."
+  sudo pacman -Sc --noconfirm
+
+  read "confirm_pacman?Delete all cached pacman packages? (y/N): "
+  [[ $confirm_pacman =~ ^[yY]$ ]] && sudo pacman -Scc --noconfirm || echo "Skipped full pacman cache clean."
+
+  if command -v yay >/dev/null 2>&1; then
+    echo "Cleaning yay cache (keeping one version)..."
+    yay -Sc --noconfirm
+
+    read "confirm_yay?Delete all cached yay packages? (y/N): "
+    [[ $confirm_yay =~ ^[yY]$ ]] && yay -Scc --noconfirm || echo "Skipped full yay cache clean."
+  else
+    echo "yay not found — skipping AUR cache cleanup."
+  fi
+
+  echo "Cache cleaning complete."
+}
+
+
 # --- Environment Variables ---
 export WORDCHARS="*?_-.[]~=&;!#$%^(){}<>"
 export VISUAL=micro
