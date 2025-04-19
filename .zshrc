@@ -51,6 +51,7 @@ alias upgrade='sudo pacman -Syu'
 # Directory Aliases
 alias md="mkdir -p"
 alias rd="rm -rf"
+alias dtop='cd ~/Desktop'
 
 # Git Aliases
 alias glog="git log --all --decorate --graph --abbrev-commit --format='%C(bold yellow)%h%d%C(reset) - %C(white)%s%C(reset)%n     %C(bold blue)%ar (%ai)%C(reset) %C(bold dim green)%an%C(reset)'"
@@ -77,8 +78,13 @@ update-all() {
   sudo true || { echo "sudo failed"; return 1; }
 
   if rate-mirrors --protocol https --save="$TMPFILE" arch --max-delay=21600; then
+    # Keep the first 4 comment lines and filter out the rest
+    head -n 4 "$TMPFILE" > "$TMPFILE.head"
+    grep -v '^#' "$TMPFILE" | sed '1,4d' >> "$TMPFILE.head"
     sudo mv /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist-backup
-    sudo mv "$TMPFILE" /etc/pacman.d/mirrorlist
+    sudo mv "$TMPFILE.head" /etc/pacman.d/mirrorlist
+    rm -f "$TMPFILE" "$TMPFILE.head"
+
     drop-caches
 
     echo "[32m::[0m [1m[69mSynchronizing Pacman databases and upgrading system packages...[0m"
