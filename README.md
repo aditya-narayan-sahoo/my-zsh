@@ -83,7 +83,7 @@ Also has aliases for updating the pacman mirrorlist
 1. **Install Zsh and Plugins**
 
    ```
-   sudo pacman -S zsh zsh-completions zsh-autosuggestions zsh-syntax-highlighting expac micro reflector tere fzf
+   sudo pacman -S zsh zsh-completions zsh-autosuggestions zsh-syntax-highlighting expac micro reflector tere fzf pacman-contrib
    ```
 
 2. **Install the Git prompt plugin from AUR**

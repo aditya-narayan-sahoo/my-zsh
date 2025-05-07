@@ -47,6 +47,7 @@ bindkey "^[[B" down-line-or-beginning-search # ARROW_DOWN
 alias install="sudo pacman -S"
 alias uninstall="sudo pacman -Rcns"
 alias upgrade='sudo pacman -Syu'
+alias search='pacman -Ss'
 
 # Directory Aliases
 alias md="mkdir -p"
@@ -56,6 +57,36 @@ alias dtop='cd ~/Desktop'
 # Git Aliases
 alias glog="git log --all --decorate --graph --abbrev-commit --format='%C(bold yellow)%h%d%C(reset) - %C(white)%s%C(reset)%n     %C(bold blue)%ar (%ai)%C(reset) %C(bold dim green)%an%C(reset)'"
 alias adog="git log --all --decorate --oneline --graph"
+
+gac() {
+  if [[ -z "$1" ]]; then
+    echo "❌ Error: Commit message is required."
+    echo "💡 Usage: gac \"Your commit message here\""
+    return 1
+  fi
+
+  echo "📂 Adding all changes..."
+  git add .
+
+  echo "📝 Committing with message: \"$*\""
+  git commit -m "$*"
+
+  current_branch=$(git rev-parse --abbrev-ref HEAD)
+  if [[ $? -ne 0 ]]; then
+    echo "❌ Error: Failed to get current branch. Are you in a git repository?"
+    return 1
+  fi
+
+  echo "🚀 Pushing to branch '$current_branch'..."
+  git push origin "$current_branch"
+
+  if [[ $? -eq 0 ]]; then
+    echo "✅ All done! Changes pushed to '$current_branch'."
+  else
+    echo "⚠️ Push failed. Please check your git remote or authentication."
+  fi
+}
+
 
 # Utility Aliases
 alias t="tere --filter-search"
