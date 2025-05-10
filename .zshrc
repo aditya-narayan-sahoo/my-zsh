@@ -58,36 +58,6 @@ alias dtop='cd ~/Desktop'
 alias glog="git log --all --decorate --graph --abbrev-commit --format='%C(bold yellow)%h%d%C(reset) - %C(white)%s%C(reset)%n     %C(bold blue)%ar (%ai)%C(reset) %C(bold dim green)%an%C(reset)'"
 alias adog="git log --all --decorate --oneline --graph"
 
-gac() {
-  if [[ -z "$1" ]]; then
-    echo "❌ Error: Commit message is required."
-    echo "💡 Usage: gac \"Your commit message here\""
-    return 1
-  fi
-
-  echo "📂 Adding all changes..."
-  git add .
-
-  echo "📝 Committing with message: \"$*\""
-  git commit -m "$*"
-
-  current_branch=$(git rev-parse --abbrev-ref HEAD)
-  if [[ $? -ne 0 ]]; then
-    echo "❌ Error: Failed to get current branch. Are you in a git repository?"
-    return 1
-  fi
-
-  echo "🚀 Pushing to branch '$current_branch'..."
-  git push origin "$current_branch"
-
-  if [[ $? -eq 0 ]]; then
-    echo "✅ All done! Changes pushed to '$current_branch'."
-  else
-    echo "⚠️ Push failed. Please check your git remote or authentication."
-  fi
-}
-
-
 # Utility Aliases
 alias t="tere --filter-search"
 alias big='expac -H M "%m\t%n" | sort -h | nl' # Sort installed packages according to size in MB (expac must be installed)
@@ -101,56 +71,6 @@ alias sortdelay='sudo reflector --country India --protocol https --sort delay --
 
 # Rate-Mirror Alias
 alias drop-caches='sudo paccache -rk3; yay -Sc --aur --noconfirm'
-
-update-all() {
-  local TMPFILE
-  TMPFILE=$(mktemp) || { echo "Failed to create temp file"; return 1; }
-
-  sudo true || { echo "sudo failed"; return 1; }
-
-  if rate-mirrors --protocol https --save="$TMPFILE" arch --max-delay=21600; then
-    # Keep the first 4 comment lines and filter out the rest
-    head -n 4 "$TMPFILE" > "$TMPFILE.head"
-    grep -v '^#' "$TMPFILE" | sed '1,4d' >> "$TMPFILE.head"
-    sudo mv /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist-backup
-    sudo mv "$TMPFILE.head" /etc/pacman.d/mirrorlist
-    rm -f "$TMPFILE" "$TMPFILE.head"
-
-    drop-caches
-
-    echo "[32m::[0m [1m[69mSynchronizing Pacman databases and upgrading system packages...[0m"
-    sudo pacman -Syyu --noconfirm
-
-    echo "[32m::[0m [1m[70mSynchronizing AUR helpers and upgrading AUR packages...[0m"
-    yay -Syyu --noconfirm
-  else
-    echo "[31m::[0m [1m[31mrate-mirrors failed to find suitable HTTPS mirrors. Aborting update.[0m"
-    rm -f "$TMPFILE"
-    return 1
-  fi
-}
-
-# Clean caches
-cclean () {
-  echo "Cleaning pacman cache (keeping one version)..."
-  sudo pacman -Sc --noconfirm
-
-  read "confirm_pacman?Delete all cached pacman packages? (y/N): "
-  [[ $confirm_pacman =~ ^[yY]$ ]] && sudo pacman -Scc --noconfirm || echo "Skipped full pacman cache clean."
-
-  if command -v yay >/dev/null 2>&1; then
-    echo "Cleaning yay cache (keeping one version)..."
-    yay -Sc --noconfirm
-
-    read "confirm_yay?Delete all cached yay packages? (y/N): "
-    [[ $confirm_yay =~ ^[yY]$ ]] && yay -Scc --noconfirm || echo "Skipped full yay cache clean."
-  else
-    echo "yay not found — skipping AUR cache cleanup."
-  fi
-
-  echo "Cache cleaning complete."
-}
-
 
 # --- Environment Variables ---
 export WORDCHARS="*?_-.[]~=&;!#$%^(){}<>"
@@ -179,6 +99,9 @@ source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zs
 source /usr/share/fzf/key-bindings.zsh
 # Type ** and hit tab (eg. with the cd command; works with directories, files, process IDs, hostnames, environment variables)
 source /usr/share/fzf/completion.zsh
+
+# --- Custom Functions ---
+source "${HOME}/.zsh_functions"
 
 # --- ZLE bindkeys for search in history ---
 autoload -U up-line-or-beginning-search
