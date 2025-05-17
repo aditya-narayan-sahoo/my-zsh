@@ -1,3 +1,11 @@
+upgrade() {
+  echo "🔄 Updating system packages..."
+  sudo pacman -Syu && echo "✅ System packages updated." || echo "❌ Failed to update system packages."
+
+  echo "🔄 Updating AUR packages..."
+  yay -Syu && echo "✅ AUR packages updated." || echo "❌ Failed to update AUR packages."
+}
+
 update-all() {
   local TMPFILE
   TMPFILE=$(mktemp) || { echo "Failed to create temp file"; return 1; }

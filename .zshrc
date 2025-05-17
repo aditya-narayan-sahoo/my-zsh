@@ -11,6 +11,10 @@ zstyle :compinstall filename '/home/ans/.zshrc'
 autoload -Uz compinit
 compinit
 
+if [[ "$TERM_PROGRAM" != "vscode" ]]; then
+    fastfetch
+fi
+
 # --- History Configuration ---
 HISTFILE=~/.histfile
 HISTSIZE=100000
@@ -46,7 +50,6 @@ bindkey "^[[B" down-line-or-beginning-search # ARROW_DOWN
 # System Aliases
 alias install="sudo pacman -S"
 alias uninstall="sudo pacman -Rcns"
-alias upgrade='sudo pacman -Syu'
 alias search='pacman -Ss'
 
 # Directory Aliases
