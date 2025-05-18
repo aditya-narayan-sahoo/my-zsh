@@ -1,21 +1,97 @@
-upgrade() {
-  echo "🔄 Updating system packages..."
-  sudo pacman -Syu && echo "✅ System packages updated." || echo "❌ Failed to update system packages."
-
-  echo "🔄 Updating AUR packages..."
-  yay -Syu && echo "✅ AUR packages updated." || echo "❌ Failed to update AUR packages."
+# Update system with spinner and timer
+spinner() {
+  local pid=$1
+  local delay=0.1
+  local spinstr='|/-\'
+  while kill -0 $pid 2>/dev/null; do
+    for i in $(seq 0 3); do
+      echo -ne "${spinstr:i:1}  \r"
+      sleep $delay
+    done
+  done
+  echo -ne "   \r"
 }
 
+upgrade() {
+  echo "🔄 Updating system packages..."
+  local start=$(date +%s)
+
+  sudo pacman -Syu
+  if [[ $? -eq 0 ]]; then
+    echo "✅ System packages updated."
+  else
+    echo "❌ Failed to update system packages."
+  fi
+
+  echo "🔄 Updating AUR packages..."
+  yay -Syu
+  if [[ $? -eq 0 ]]; then
+    echo "✅ AUR packages updated."
+  else
+    echo "❌ Failed to update AUR packages."
+  fi
+
+  echo "🔄 Updating Flatpak packages..."
+  flatpak update -y
+  if [[ $? -eq 0 ]]; then
+    echo "✅ Flatpak packages updated."
+  else
+    echo "❌ Failed to update Flatpak packages."
+  fi
+
+  local end=$(date +%s)
+  echo "⏱️ Total update time: $((end - start)) seconds."
+}
+
+# Refresh India Mirrorlist and update system, with backup and mirrorlist display
+mirrup() {
+  echo "🌐 Backing up current mirrorlist..."
+  sudo cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup.$(date +%Y%m%d_%H%M%S)
+
+  echo "🌐 Refreshing mirrorlist using Reflector..."
+  sudo reflector --country India --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+  if [[ $? -ne 0 ]]; then
+    echo "❌ Failed to update mirrorlist."
+    return 1
+  fi
+
+  echo "✅ Mirrorlist updated successfully."
+  echo "📦 Performing full system upgrade with forced database refresh..."
+
+  sudo pacman -Syyu && echo "✅ System packages updated." || echo "❌ Failed to update system packages."
+
+  echo "🔄 Updating AUR packages with forced refresh..."
+  yay -Syyu && echo "✅ AUR packages updated." || echo "❌ Failed to update AUR packages."
+
+  echo "🔄 Updating Flatpak packages..."
+  flatpak update -y && echo "✅ Flatpak packages updated." || echo "❌ Failed to update Flatpak packages."
+
+  echo "🎉 Full system upgrade complete using refreshed mirrorlist."
+
+  echo ""
+  echo "📋 Showing entire updated mirrorlist:"
+  echo "-------------------------------------------------"
+  cat /etc/pacman.d/mirrorlist
+  echo "-------------------------------------------------"
+}
+
+# Refresh All Mirrorlist and update system
 update-all() {
   local TMPFILE
-  TMPFILE=$(mktemp) || { echo "Failed to create temp file"; return 1; }
+  TMPFILE=$(mktemp) || {
+    echo "Failed to create temp file"
+    return 1
+  }
 
-  sudo true || { echo "sudo failed"; return 1; }
+  sudo true || {
+    echo "sudo failed"
+    return 1
+  }
 
   if rate-mirrors --protocol https --save="$TMPFILE" arch --max-delay=21600; then
     # Keep the first 4 comment lines and filter out the rest
-    head -n 4 "$TMPFILE" > "$TMPFILE.head"
-    grep -v '^#' "$TMPFILE" | sed '1,4d' >> "$TMPFILE.head"
+    head -n 4 "$TMPFILE" >"$TMPFILE.head"
+    grep -v '^#' "$TMPFILE" | sed '1,4d' >>"$TMPFILE.head"
     sudo mv /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist-backup
     sudo mv "$TMPFILE.head" /etc/pacman.d/mirrorlist
     rm -f "$TMPFILE" "$TMPFILE.head"
@@ -34,29 +110,83 @@ update-all() {
   fi
 }
 
+# Clean caches with selective flags and --force
+cclean() {
+  local force=false
+  local clean_docker=false
+  local clean_npm=false
 
-# Clean caches
-cclean () {
-  echo "Cleaning pacman cache (keeping one version)..."
+  # Parse flags
+  for arg in "$@"; do
+    case $arg in
+    --force | -f) force=true ;;
+    --docker) clean_docker=true ;;
+    --npm) clean_npm=true ;;
+    esac
+  done
+
+  echo "🧹 Cleaning pacman cache (keeping one version)..."
   sudo pacman -Sc --noconfirm
 
-  read "confirm_pacman?Delete all cached pacman packages? (y/N): "
-  [[ $confirm_pacman =~ ^[yY]$ ]] && sudo pacman -Scc --noconfirm || echo "Skipped full pacman cache clean."
-
-  if command -v yay >/dev/null 2>&1; then
-    echo "Cleaning yay cache (keeping one version)..."
-    yay -Sc --noconfirm
-
-    read "confirm_yay?Delete all cached yay packages? (y/N): "
-    [[ $confirm_yay =~ ^[yY]$ ]] && yay -Scc --noconfirm || echo "Skipped full yay cache clean."
+  if $force; then
+    echo "🧹 Cleaning full pacman cache (all versions) (forced)..."
+    sudo pacman -Scc --noconfirm
   else
-    echo "yay not found — skipping AUR cache cleanup."
+    read "confirm_pacman?🗑️ Delete all cached pacman packages? (y/N): "
+    if [[ $confirm_pacman =~ ^[yY]$ ]]; then
+      sudo pacman -Scc --noconfirm
+    else
+      echo "⏭️ Skipped full pacman cache clean."
+    fi
   fi
 
-  echo "Cache cleaning complete."
+  if command -v yay >/dev/null 2>&1; then
+    echo "🧹 Cleaning yay cache (keeping one version)..."
+    yay -Sc --noconfirm
+
+    if $force; then
+      echo "🧹 Cleaning full yay cache (all versions) (forced)..."
+      yay -Scc --noconfirm
+    else
+      read "confirm_yay?🗑️ Delete all cached yay packages? (y/N): "
+      if [[ $confirm_yay =~ ^[yY]$ ]]; then
+        yay -Scc --noconfirm
+      else
+        echo "⏭️ Skipped full yay cache clean."
+      fi
+    fi
+  else
+    echo "⚠️ yay not found — skipping AUR cache cleanup."
+  fi
+
+  if command -v flatpak >/dev/null 2>&1; then
+    echo "🧹 Cleaning Flatpak unused runtimes..."
+    flatpak uninstall --unused -y && echo "✅ Flatpak unused runtimes removed." || echo "❌ Failed to clean Flatpak."
+  else
+    echo "⚠️ flatpak not found — skipping Flatpak cleanup."
+  fi
+
+  echo "🧾 Vacuuming journal logs older than 7 days..."
+  sudo journalctl --vacuum-time=7d && echo "✅ Journal logs cleaned." || echo "❌ Failed to vacuum journal logs."
+
+  if $clean_docker && command -v docker >/dev/null 2>&1 && systemctl is-active --quiet docker; then
+    echo "🐳 Cleaning up Docker..."
+    docker system prune -af --volumes && echo "✅ Docker system pruned." || echo "❌ Failed to clean Docker."
+  else
+    echo "⚠️ Skipped Docker cleanup."
+  fi
+
+  if $clean_npm && command -v npm >/dev/null 2>&1 && [[ -d "$HOME/.npm" ]]; then
+    echo "📦 Cleaning npm cache..."
+    npm cache clean --force && echo "✅ npm cache cleaned." || echo "❌ Failed to clean npm cache."
+  else
+    echo "⚠️ Skipped npm cleanup."
+  fi
+
+  echo "✅ All available caches cleaned."
 }
 
-
+# Git add, commit, push with message validation and basic completion
 gac() {
   if [[ -z "$1" ]]; then
     echo "❌ Error: Commit message is required."
@@ -64,24 +194,68 @@ gac() {
     return 1
   fi
 
-  echo "📂 Adding all changes..."
+  if ! git rev-parse --git-dir >/dev/null 2>&1; then
+    echo "❌ Error: Not a git repository."
+    return 1
+  fi
+
+  echo "📂 Staging all changes..."
   git add .
 
   echo "📝 Committing with message: \"$*\""
-  git commit -m "$*"
+  if ! git commit -m "$*"; then
+    echo "⚠️ Commit failed. Possibly nothing to commit?"
+    return 1
+  fi
 
-  current_branch=$(git rev-parse --abbrev-ref HEAD)
-  if [[ $? -ne 0 ]]; then
-    echo "❌ Error: Failed to get current branch. Are you in a git repository?"
+  current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+  if [[ -z "$current_branch" ]]; then
+    echo "❌ Error: Could not determine the current branch."
     return 1
   fi
 
   echo "🚀 Pushing to branch '$current_branch'..."
-  git push origin "$current_branch"
-
-  if [[ $? -eq 0 ]]; then
+  if git push origin "$current_branch"; then
     echo "✅ All done! Changes pushed to '$current_branch'."
   else
-    echo "⚠️ Push failed. Please check your git remote or authentication."
+    echo "❌ Push failed."
+    return 1
   fi
+}
+
+# Basic completion support for gac (shows a hint)
+_gac() {
+  compadd -- "Your commit message here"
+}
+
+compdef _gac gac
+
+# System health check report
+syshealth() {
+  echo "🖥️  System Health Report"
+
+  echo -n "CPU Usage: "
+  top -bn1 | grep "Cpu(s)" | awk '{print $2 + $4 "%"}'
+
+  echo -n "Memory Usage: "
+  free -h | awk '/^Mem:/ {print $3 " used / " $2 " total"}'
+
+  echo -n "Disk Usage (root): "
+  df -h / | awk 'NR==2 {print $3 " used / " $2 " total (" $5 " used)"}'
+
+  if command -v sensors >/dev/null 2>&1; then
+    echo "🌡️ Temperature sensors:"
+    sensors | grep -E 'temp[1-9]_input|Core'
+  else
+    echo "⚠️ sensors command not found. Install 'lm_sensors' for temperature info."
+  fi
+
+  echo "🟢 Services status (docker, sshd):"
+  for svc in docker sshd; do
+    if systemctl is-active --quiet "$svc"; then
+      echo " ✔ $svc running"
+    else
+      echo " ❌ $svc not running"
+    fi
+  done
 }
