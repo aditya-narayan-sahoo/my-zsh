@@ -73,7 +73,13 @@ alias sortage='sudo reflector --country India --protocol https --sort age --save
 alias sortdelay='sudo reflector --country India --protocol https --sort delay --save /etc/pacman.d/mirrorlist' # low latency
 
 # Rate-Mirror Alias
-alias drop-caches='sudo paccache -rk3; yay -Sc --aur --noconfirm'
+drop-caches() {
+  echo "⚠️ Flushing file system caches (pagecache, dentries, inodes)..."
+  sync
+  echo 3 | sudo tee /proc/sys/vm/drop_caches >/dev/null
+  echo "✅ Memory caches dropped."
+}
+
 
 # --- Environment Variables ---
 export WORDCHARS="*?_-.[]~=&;!#$%^(){}<>"
@@ -111,3 +117,6 @@ autoload -U up-line-or-beginning-search
 autoload -U down-line-or-beginning-search
 zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
+
+# Add .local/bin to the PATH
+export PATH=$HOME/.local/bin:$PATH

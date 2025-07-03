@@ -1,10 +1,17 @@
-# Update system with spinner and timer
+# ┌─────────────────────────────┐
+# │ Arch Linux System Utilities │
+# └─────────────────────────────┘
+
+# ─── Command Availability Check ─────────────────────────────────────────────
+is_installed() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+# ─── Spinner Function ───────────────────────────────────────────────────────
 spinner() {
-  local pid=$1
-  local delay=0.1
-  local spinstr='|/-\'
+  local pid=$1 delay=0.1 spinstr='|/-\'
   while kill -0 $pid 2>/dev/null; do
-    for i in $(seq 0 3); do
+    for ((i=0; i<${#spinstr}; i++)); do
       echo -ne "${spinstr:i:1}  \r"
       sleep $delay
     done
@@ -12,250 +19,172 @@ spinner() {
   echo -ne "   \r"
 }
 
+# ─── Drop Memory Caches ─────────────────────────────────────────────────────
+drop-caches() {
+  echo "💡 Dropping memory caches..."
+  sync && sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches'
+}
+
+# ─── System Update ──────────────────────────────────────────────────────────
 upgrade() {
   echo "🔄 Updating system packages..."
   local start=$(date +%s)
 
-  sudo pacman -Syu
-  if [[ $? -eq 0 ]]; then
-    echo "✅ System packages updated."
-  else
-    echo "❌ Failed to update system packages."
+  sudo pacman -Syu && echo "✅ System updated via pacman." || echo "❌ Pacman update failed."
+
+  if is_installed yay; then
+    echo "🔄 Updating AUR packages..."
+    yay -Syu && echo "✅ AUR packages updated." || echo "❌ AUR update failed."
   fi
 
-  echo "🔄 Updating AUR packages..."
-  yay -Syu
-  if [[ $? -eq 0 ]]; then
-    echo "✅ AUR packages updated."
-  else
-    echo "❌ Failed to update AUR packages."
-  fi
-
-  echo "🔄 Updating Flatpak packages..."
-  flatpak update -y
-  if [[ $? -eq 0 ]]; then
-    echo "✅ Flatpak packages updated."
-  else
-    echo "❌ Failed to update Flatpak packages."
+  if is_installed flatpak; then
+    echo "🔄 Updating Flatpak packages..."
+    flatpak update -y && echo "✅ Flatpak updated." || echo "❌ Flatpak update failed."
   fi
 
   local end=$(date +%s)
-  echo "⏱️ Total update time: $((end - start)) seconds."
+  echo "⏱️ Total time: $((end - start)) seconds."
 }
 
-# Refresh India Mirrorlist and update system, with backup and mirrorlist display
+# ─── India Mirrorlist + Upgrade ─────────────────────────────────────────────
 mirrup() {
-  echo "🌐 Backing up current mirrorlist..."
-  sudo cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup.$(date +%Y%m%d_%H%M%S)
+  echo "🌐 Backing up mirrorlist..."
+  sudo cp /etc/pacman.d/mirrorlist "/etc/pacman.d/mirrorlist.backup.$(date +%Y%m%d_%H%M%S)"
 
-  echo "🌐 Refreshing mirrorlist using Reflector..."
-  sudo reflector --country India --protocol https --sort rate --save /etc/pacman.d/mirrorlist
-  if [[ $? -ne 0 ]]; then
-    echo "❌ Failed to update mirrorlist."
-    return 1
-  fi
-
-  echo "✅ Mirrorlist updated successfully."
-  echo "📦 Performing full system upgrade with forced database refresh..."
-
-  sudo pacman -Syyu && echo "✅ System packages updated." || echo "❌ Failed to update system packages."
-
-  echo "🔄 Updating AUR packages with forced refresh..."
-  yay -Syyu && echo "✅ AUR packages updated." || echo "❌ Failed to update AUR packages."
-
-  echo "🔄 Updating Flatpak packages..."
-  flatpak update -y && echo "✅ Flatpak packages updated." || echo "❌ Failed to update Flatpak packages."
-
-  echo "🎉 Full system upgrade complete using refreshed mirrorlist."
-
-  echo ""
-  echo "📋 Showing entire updated mirrorlist:"
-  echo "-------------------------------------------------"
-  cat /etc/pacman.d/mirrorlist
-  echo "-------------------------------------------------"
-}
-
-# Refresh All Mirrorlist and update system
-update-all() {
-  local TMPFILE
-  TMPFILE=$(mktemp) || {
-    echo "Failed to create temp file"
-    return 1
-  }
-
-  sudo true || {
-    echo "sudo failed"
-    return 1
-  }
-
-  if rate-mirrors --protocol https --save="$TMPFILE" arch --max-delay=21600; then
-    # Keep the first 4 comment lines and filter out the rest
-    head -n 4 "$TMPFILE" >"$TMPFILE.head"
-    grep -v '^#' "$TMPFILE" | sed '1,4d' >>"$TMPFILE.head"
-    sudo mv /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist-backup
-    sudo mv "$TMPFILE.head" /etc/pacman.d/mirrorlist
-    rm -f "$TMPFILE" "$TMPFILE.head"
-
-    drop-caches
-
-    echo "[32m::[0m [1m[69mSynchronizing Pacman databases and upgrading system packages...[0m"
-    sudo pacman -Syyu --noconfirm
-
-    echo "[32m::[0m [1m[70mSynchronizing AUR helpers and upgrading AUR packages...[0m"
-    yay -Syyu --noconfirm
+  echo "🌐 Updating mirrorlist (India)..."
+  if sudo reflector --country India --protocol https --sort rate --save /etc/pacman.d/mirrorlist; then
+    echo "✅ Mirrorlist updated."
+    upgrade
+    echo "📋 Current mirrorlist:"
+    echo "-------------------------------------------------"
+    cat /etc/pacman.d/mirrorlist
+    echo "-------------------------------------------------"
   else
-    echo "[31m::[0m [1m[31mrate-mirrors failed to find suitable HTTPS mirrors. Aborting update.[0m"
-    rm -f "$TMPFILE"
-    return 1
+    echo "❌ Reflector failed."
   fi
 }
 
-# Clean caches with selective flags and --force
-cclean() {
-  local force=false
-  local clean_docker=false
-  local clean_npm=false
+# ─── Global Mirrorlist + Upgrade ────────────────────────────────────────────
+update-all() {
+  local tmpfile=$(mktemp)
+  sudo true || return 1
 
-  # Parse flags
+  if rate-mirrors --protocol https --save="$tmpfile" arch --max-delay=21600; then
+    head -n 4 "$tmpfile" >"$tmpfile.head"
+    grep -v '^#' "$tmpfile" | sed '1,4d' >>"$tmpfile.head"
+    sudo mv /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist-backup
+    sudo mv "$tmpfile.head" /etc/pacman.d/mirrorlist
+    drop-caches
+    echo "🔄 Updating system with new mirrors..."
+    upgrade
+  else
+    echo "❌ rate-mirrors failed."
+  fi
+
+  rm -f "$tmpfile" "$tmpfile.head"
+}
+
+# ─── Cache Cleaner ──────────────────────────────────────────────────────────
+cclean() {
+  local force=false docker=false npm=false
+
   for arg in "$@"; do
     case $arg in
-    --force | -f) force=true ;;
-    --docker) clean_docker=true ;;
-    --npm) clean_npm=true ;;
+      --force|-f) force=true ;;
+      --docker) docker=true ;;
+      --npm) npm=true ;;
     esac
   done
 
-  echo "🧹 Cleaning pacman cache (keeping one version)..."
+  echo "🧹 Cleaning pacman cache..."
   sudo pacman -Sc --noconfirm
 
-  if $force; then
-    echo "🧹 Cleaning full pacman cache (all versions) (forced)..."
+  if $force || read -q "REPLY?🗑️ Delete all cached pacman packages? (y/N): "; then
     sudo pacman -Scc --noconfirm
+    sudo rm -rf /var/cache/pacman/pkg/*
+    echo "✅ Full pacman cache cleaned."
   else
-    read "confirm_pacman?🗑️ Delete all cached pacman packages? (y/N): "
-    if [[ $confirm_pacman =~ ^[yY]$ ]]; then
-      sudo pacman -Scc --noconfirm
-    else
-      echo "⏭️ Skipped full pacman cache clean."
-    fi
+    echo "⏭️ Skipped full pacman cache clean."
   fi
 
-  if command -v yay >/dev/null 2>&1; then
-    echo "🧹 Cleaning yay cache (keeping one version)..."
+  if is_installed yay; then
+    echo "🧹 Cleaning yay cache..."
     yay -Sc --noconfirm
-
-    if $force; then
-      echo "🧹 Cleaning full yay cache (all versions) (forced)..."
+    if $force || read -q "REPLY?🗑️ Delete all cached yay packages? (y/N): "; then
       yay -Scc --noconfirm
     else
-      read "confirm_yay?🗑️ Delete all cached yay packages? (y/N): "
-      if [[ $confirm_yay =~ ^[yY]$ ]]; then
-        yay -Scc --noconfirm
-      else
-        echo "⏭️ Skipped full yay cache clean."
-      fi
+      echo "⏭️ Skipped full yay cache clean."
     fi
-  else
-    echo "⚠️ yay not found — skipping AUR cache cleanup."
   fi
 
-  if command -v flatpak >/dev/null 2>&1; then
-    echo "🧹 Cleaning Flatpak unused runtimes..."
-    flatpak uninstall --unused -y && echo "✅ Flatpak unused runtimes removed." || echo "❌ Failed to clean Flatpak."
-  else
-    echo "⚠️ flatpak not found — skipping Flatpak cleanup."
+  if is_installed flatpak; then
+    echo "🧹 Cleaning unused Flatpak runtimes..."
+    flatpak uninstall --unused -y
   fi
 
-  echo "🧾 Vacuuming journal logs older than 7 days..."
-  sudo journalctl --vacuum-time=7d && echo "✅ Journal logs cleaned." || echo "❌ Failed to vacuum journal logs."
+  echo "🧾 Vacuuming journal logs > 7 days..."
+  sudo journalctl --vacuum-time=7d
 
-  if $clean_docker && command -v docker >/dev/null 2>&1 && systemctl is-active --quiet docker; then
-    echo "🐳 Cleaning up Docker..."
-    docker system prune -af --volumes && echo "✅ Docker system pruned." || echo "❌ Failed to clean Docker."
-  else
-    echo "⚠️ Skipped Docker cleanup."
+  if $docker && is_installed docker && systemctl is-active --quiet docker; then
+    echo "🐳 Cleaning Docker..."
+    docker system prune -af --volumes
   fi
 
-  if $clean_npm && command -v npm >/dev/null 2>&1 && [[ -d "$HOME/.npm" ]]; then
+  if $npm && is_installed npm && [[ -d "$HOME/.npm" ]]; then
     echo "📦 Cleaning npm cache..."
-    npm cache clean --force && echo "✅ npm cache cleaned." || echo "❌ Failed to clean npm cache."
-  else
-    echo "⚠️ Skipped npm cleanup."
+    npm cache clean --force
   fi
 
-  echo "✅ All available caches cleaned."
+  echo "✅ Cleanup complete."
 }
 
-# Git add, commit, push with message validation and basic completion
+# ─── Git Add, Commit, Push ──────────────────────────────────────────────────
 gac() {
-  if [[ -z "$1" ]]; then
-    echo "❌ Error: Commit message is required."
-    echo "💡 Usage: gac \"Your commit message here\""
-    return 1
-  fi
+  [[ -z "$1" ]] && { echo "❌ Commit message required."; return 1; }
 
-  if ! git rev-parse --git-dir >/dev/null 2>&1; then
-    echo "❌ Error: Not a git repository."
-    return 1
-  fi
+  git rev-parse --git-dir >/dev/null 2>&1 || { echo "❌ Not a Git repo."; return 1; }
 
-  echo "📂 Staging all changes..."
+  echo "📂 Staging changes..."
   git add .
 
-  echo "📝 Committing with message: \"$*\""
-  if ! git commit -m "$*"; then
-    echo "⚠️ Commit failed. Possibly nothing to commit?"
-    return 1
-  fi
+  echo "📝 Committing: $*"
+  git commit -m "$*" || { echo "⚠️ Commit failed."; return 1; }
 
-  current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
-  if [[ -z "$current_branch" ]]; then
-    echo "❌ Error: Could not determine the current branch."
-    return 1
-  fi
-
-  echo "🚀 Pushing to branch '$current_branch'..."
-  if git push origin "$current_branch"; then
-    echo "✅ All done! Changes pushed to '$current_branch'."
-  else
-    echo "❌ Push failed."
-    return 1
-  fi
+  local branch=$(git rev-parse --abbrev-ref HEAD)
+  echo "🚀 Pushing to '$branch'..."
+  git push origin "$branch" && echo "✅ Pushed." || echo "❌ Push failed."
 }
 
-# Basic completion support for gac (shows a hint)
+# Optional auto-completion for gac
 _gac() {
   compadd -- "Your commit message here"
 }
-
 compdef _gac gac
 
-# System health check report
+# ─── System Health Report ───────────────────────────────────────────────────
 syshealth() {
-  echo "🖥️  System Health Report"
+  echo "🖥️ System Health Report"
 
-  echo -n "CPU Usage: "
-  top -bn1 | grep "Cpu(s)" | awk '{print $2 + $4 "%"}'
+  echo -n "🧠 CPU: "
+  top -bn1 | awk '/Cpu/ {print $2 + $4 "%"}'
 
-  echo -n "Memory Usage: "
+  echo -n "💾 RAM: "
   free -h | awk '/^Mem:/ {print $3 " used / " $2 " total"}'
 
-  echo -n "Disk Usage (root): "
+  echo -n "💽 Disk (/): "
   df -h / | awk 'NR==2 {print $3 " used / " $2 " total (" $5 " used)"}'
 
-  if command -v sensors >/dev/null 2>&1; then
-    echo "🌡️ Temperature sensors:"
+  if is_installed sensors; then
+    echo "🌡️ Temperature:"
     sensors | grep -E 'temp[1-9]_input|Core'
   else
-    echo "⚠️ sensors command not found. Install 'lm_sensors' for temperature info."
+    echo "⚠️ Install 'lm_sensors' for temp info."
   fi
 
-  echo "🟢 Services status (docker, sshd):"
+  echo "🔧 Services (docker, sshd):"
   for svc in docker sshd; do
-    if systemctl is-active --quiet "$svc"; then
-      echo " ✔ $svc running"
-    else
-      echo " ❌ $svc not running"
-    fi
+    systemctl is-active --quiet "$svc" && echo " ✔ $svc running" || echo " ❌ $svc not running"
   done
 }
+
+# ─── End of Arch Linux System Utilities ─────────────────────────────────────
