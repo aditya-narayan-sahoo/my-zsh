@@ -1,0 +1,143 @@
+# ┌──────────────────────────────┐
+# │ Fedora System Utilities 🐧   │
+# └──────────────────────────────┘
+
+# ─── Command Availability Check ─────────────────────────────────────────────
+is_installed() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+# ─── Spinner Function ───────────────────────────────────────────────────────
+spinner() {
+  local pid=$1 delay=0.1 spinstr='|/-\'
+  while kill -0 $pid 2>/dev/null; do
+    for ((i=0; i<${#spinstr}; i++)); do
+      echo -ne "${spinstr:i:1}  \r"
+      sleep $delay
+    done
+  done
+  echo -ne "   \r"
+}
+
+# ─── Drop Memory Caches ─────────────────────────────────────────────────────
+drop-caches() {
+  echo "💡 Dropping memory caches..."
+  sync && sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches'
+}
+
+# ─── System Update ──────────────────────────────────────────────────────────
+upgrade() {
+  echo "🔄 Updating system packages..."
+  local start=$(date +%s)
+
+  sudo dnf upgrade --refresh -y && echo "✅ System updated via dnf." || echo "❌ dnf update failed."
+
+  if is_installed flatpak; then
+    echo "🔄 Updating Flatpak packages..."
+    flatpak update -y && echo "✅ Flatpak updated." || echo "❌ Flatpak update failed."
+  fi
+
+  local end=$(date +%s)
+  echo "⏱️ Total time: $((end - start)) seconds."
+}
+
+# ─── Global Mirror Optimization Placeholder ─────────────────────────────────
+# Fedora doesn’t typically require manual mirror sorting like Arch.
+# This is a placeholder if you use fastestmirror plugin or DNF config tweaking.
+mirror-setup() {
+  echo "🌐 Fedora handles mirrors automatically via fastestmirror plugin."
+  echo "📁 You can configure /etc/dnf/dnf.conf to tweak behavior."
+}
+
+# ─── Update All + Drop Cache ────────────────────────────────────────────────
+update-all() {
+  drop-caches
+  upgrade
+}
+
+# ─── Cache Cleaner ──────────────────────────────────────────────────────────
+cclean() {
+  local force=false docker=false npm=false
+
+  for arg in "$@"; do
+    case $arg in
+      --force|-f) force=true ;;
+      --docker) docker=true ;;
+      --npm) npm=true ;;
+    esac
+  done
+
+  echo "🧹 Cleaning DNF cache..."
+  sudo dnf clean all
+
+  if is_installed flatpak; then
+    echo "🧹 Cleaning unused Flatpak runtimes..."
+    flatpak uninstall --unused -y
+  fi
+
+  echo "🧾 Vacuuming journal logs > 7 days..."
+  sudo journalctl --vacuum-time=7d
+
+  if $docker && is_installed docker && systemctl is-active --quiet docker; then
+    echo "🐳 Cleaning Docker..."
+    docker system prune -af --volumes
+  fi
+
+  if $npm && is_installed npm && [[ -d "$HOME/.npm" ]]; then
+    echo "📦 Cleaning npm cache..."
+    npm cache clean --force
+  fi
+
+  echo "✅ Cleanup complete."
+}
+
+# ─── Git Add, Commit, Push ──────────────────────────────────────────────────
+gac() {
+  [[ -z "$1" ]] && { echo "❌ Commit message required."; return 1; }
+
+  git rev-parse --git-dir >/dev/null 2>&1 || { echo "❌ Not a Git repo."; return 1; }
+
+  echo "📂 Staging changes..."
+  git add .
+
+  echo "📝 Committing: $*"
+  git commit -m "$*" || { echo "⚠️ Commit failed."; return 1; }
+
+  local branch=$(git rev-parse --abbrev-ref HEAD)
+  echo "🚀 Pushing to '$branch'..."
+  git push origin "$branch" && echo "✅ Pushed." || echo "❌ Push failed."
+}
+
+# Optional auto-completion for gac
+_gac() {
+  compadd -- "Your commit message here"
+}
+compdef _gac gac
+
+# ─── System Health Report ───────────────────────────────────────────────────
+syshealth() {
+  echo "🖥️ System Health Report"
+
+  echo -n "🧠 CPU: "
+  top -bn1 | awk '/Cpu/ {print $2 + $4 "%"}'
+
+  echo -n "💾 RAM: "
+  free -h | awk '/^Mem:/ {print $3 " used / " $2 " total"}'
+
+  echo -n "💽 Disk (/): "
+  df -h / | awk 'NR==2 {print $3 " used / " $2 " total (" $5 " used)"}'
+
+  if is_installed sensors; then
+    echo "🌡️ Temperature:"
+    sensors | grep -E 'temp[1-9]_input|Core'
+  else
+    echo "⚠️ Install 'lm_sensors' for temp info."
+  fi
+
+  echo "🔧 Services (docker, sshd):"
+  for svc in docker sshd; do
+    systemctl is-active --quiet "$svc" && echo " ✔ $svc running" || echo " ❌ $svc not running"
+  done
+}
+
+# ─── End of Fedora System Utilities ─────────────────────────────────────────
