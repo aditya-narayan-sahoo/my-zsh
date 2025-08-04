@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Path to the battery information in the /sys filesystem
+battery_path="/sys/class/power_supply/BAT1/capacity"
+
+# Check if the battery path exists
+if [ -f "$battery_path" ]; then
+    # Get the battery percentage
+    battery_level=$(cat "$battery_path")%
+
+    # Get the current time in 12-hour format with AM/PM
+    current_time=$(date +"%I:%M %p")
+
+    # Append the battery level and current time to the file
+    echo "$battery_level $current_time" >> ~/Desktop/battery.txt
+else
+    echo "Battery information not found at $battery_path"
+fi
