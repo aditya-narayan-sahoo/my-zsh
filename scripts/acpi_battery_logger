@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Get battery percentage using acpi
+battery_level=$(acpi -b | grep -o '[0-9]\+%' | head -n 1)
+
+# Get the current time in 24-hour format
+current_time=$(date +"%H:%M")
+
+# Get the current date in DD-MM format
+current_date=$(date +"%d/%m")
+
+# Append the current date, time, and battery level to the file
+echo "$current_date $current_time $battery_level" >> ~/Desktop/battery.txt
